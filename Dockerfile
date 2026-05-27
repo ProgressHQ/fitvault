@@ -9,7 +9,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # OpenPay SDK source is resolved at build time via webpack aliases
-COPY ../openpay-sdk /openpay-sdk
+COPY --from=openpay-sdk . /openpay-sdk
 COPY . .
 RUN npm run build
 
