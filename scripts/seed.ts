@@ -13,7 +13,7 @@ interface BlobExercise {
   level: string;
   force: string | null;
   mechanic: string | null;
-  equipment: string;
+  equipment: string | null;
   primaryMuscles: string[];
   secondaryMuscles: string[];
   category: string;
@@ -72,7 +72,8 @@ const FORCE_MAP: Record<string, string> = {
   static: "CARRY",
 };
 
-function mapEquipment(eq: string): string {
+function mapEquipment(eq: string | null): string {
+  if (!eq) return "BODYWEIGHT";
   return EQUIPMENT_MAP[eq.toLowerCase()] ?? "BODYWEIGHT";
 }
 
@@ -106,7 +107,7 @@ async function main() {
 
   const pool = new Pool({ connectionString: dbUrl });
 
-  const blobPath = join(__dirname, "../../excercises-blob/trainely_exercises.json");
+  const blobPath = join(__dirname, "../../excercises-blob/excercises_en.json");
   const raw = readFileSync(blobPath, "utf-8");
   const exercises: BlobExercise[] = JSON.parse(raw) as BlobExercise[];
 
