@@ -13,18 +13,30 @@ COPY --from=openpay-sdk . /openpay-sdk
 COPY . .
 RUN npm run build
 
+# Download golang-migrate binary for the target architecture
+FROM alpine:3.19 AS migrate-dl
+ARG MIGRATE_VERSION=4.18.1
+RUN apk add --no-cache curl \
+    && ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+    && curl -fsSL "https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.linux-${ARCH}.tar.gz" \
+       | tar xz -C /usr/local/bin migrate
+
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
+COPY --from=migrate-dl /usr/local/bin/migrate /usr/local/bin/migrate
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --chown=nextjs:nodejs db/migrations ./db/migrations
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
 EXPOSE 3002
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3002
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
     CMD wget --spider --quiet http://127.0.0.1:3002/ || exit 1
-CMD ["node", "server.js"]
+CMD ["./docker-entrypoint.sh"]
