@@ -161,8 +161,8 @@ select.input option { background: var(--bg-3); }
 .mkt-links a:hover { color: var(--text); }
 .mkt-links a.active { color: var(--accent); }
 
-/* ── PPV PAGE SHELL ──────────────────────────────────────────────────────── */
-.ppv-shell {
+/* ── FITVAULT PAGE SHELL ─────────────────────────────────────────────────── */
+.fitvault-shell {
   max-width: 1280px; margin: 0 auto;
   padding: calc(60px + 2.5rem) 5% 4rem;
 }
@@ -237,12 +237,12 @@ select.input option { background: var(--bg-3); }
 }
 
 /* ── TABLE ───────────────────────────────────────────────────────────────── */
-.ppv-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.ppv-table th {
+.fitvault-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.fitvault-table th {
   text-align: left; padding: 0.6rem 0.75rem;
   font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--muted); border-bottom: 1px solid var(--border);
 }
-.ppv-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-2); }
-.ppv-table tr:last-child td { border-bottom: none; }
-.ppv-table td.mono-val { font-family: var(--font-mono); color: var(--accent); }
+.fitvault-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-2); }
+.fitvault-table tr:last-child td { border-bottom: none; }
+.fitvault-table td.mono-val { font-family: var(--font-mono); color: var(--accent); }

@@ -1,5 +1,5 @@
 /**
- * Seed the video_library_exercises table from excercises-blob/trainely_exercises.json.
+ * Seed the fitvault_exercises table from excercises-blob/trainely_exercises.json.
  * Run: DATABASE_URL=... npm run seed
  */
 
@@ -128,7 +128,7 @@ async function main() {
 
     try {
       await pool.query(
-        `INSERT INTO video_library_exercises
+        `INSERT INTO fitvault_exercises
            (name, muscle_groups, equipment, difficulty, movement_pattern, instructions, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'APPROVED')
          ON CONFLICT DO NOTHING`,

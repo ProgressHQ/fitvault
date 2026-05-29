@@ -1,4 +1,4 @@
-DB_URL ?= postgres://app:app@localhost:5432/video_library_db?sslmode=disable
+DB_URL ?= postgres://app:app@localhost:5432/fitvault_db?sslmode=disable
 
 .PHONY: install dev build migrate migrate-down seed typecheck
 

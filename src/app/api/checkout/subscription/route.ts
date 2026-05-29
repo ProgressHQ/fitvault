@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       return err(400, "Use /checkout/video for non-subscription products");
     }
 
-    const baseUrl = process.env["PPV_BASE_URL"] ?? "http://localhost:3002";
+    const baseUrl = process.env["FITVAULT_BASE_URL"] ?? "http://localhost:3002";
     const session = await createCheckoutSession({
       amount: { amount: product.price_cents, currency: product.currency },
       description: product.title,

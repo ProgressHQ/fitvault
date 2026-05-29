@@ -114,7 +114,7 @@ export async function listExercises(opts: ListExercisesOptions): Promise<{
   params.push(limit + 1);
   const sql = `
     SELECT e.*
-    FROM video_library_exercises e
+    FROM fitvault_exercises e
     WHERE ${conditions.join(" AND ")}
     ORDER BY e.id
     LIMIT $${i}
@@ -139,7 +139,7 @@ export async function getExercise(
   const pool = getPool();
   const statusClause = includeNonApproved ? "" : "AND e.status = 'APPROVED'";
   const result = await pool.query<ExerciseRow>(
-    `SELECT * FROM video_library_exercises e WHERE e.id = $1 ${statusClause} LIMIT 1`,
+    `SELECT * FROM fitvault_exercises e WHERE e.id = $1 ${statusClause} LIMIT 1`,
     [id]
   );
   const row = result.rows[0];
@@ -149,7 +149,7 @@ export async function getExercise(
 export async function listPendingReview(): Promise<ExerciseDetail[]> {
   const pool = getPool();
   const result = await pool.query<ExerciseRow>(
-    `SELECT * FROM video_library_exercises WHERE status = 'PENDING_REVIEW' ORDER BY created_at ASC`
+    `SELECT * FROM fitvault_exercises WHERE status = 'PENDING_REVIEW' ORDER BY created_at ASC`
   );
   return result.rows.map((r) => toDetail(r, "en"));
 }
@@ -161,7 +161,7 @@ export async function updateExerciseStatus(
 ): Promise<void> {
   const pool = getPool();
   await pool.query(
-    `UPDATE video_library_exercises
+    `UPDATE fitvault_exercises
      SET status = $1, reviewer_id = $2, reviewed_at = now(), updated_at = now()
      WHERE id = $3`,
     [status, reviewerId, id]
@@ -182,7 +182,7 @@ export async function createExerciseDraft(
 ): Promise<string> {
   const pool = getPool();
   const result = await pool.query<{ id: string }>(
-    `INSERT INTO video_library_exercises
+    `INSERT INTO fitvault_exercises
        (name, description, muscle_groups, equipment, difficulty, movement_pattern, instructions, contributor_id, status)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'DRAFT')
      RETURNING id`,
@@ -212,7 +212,7 @@ export async function setExerciseVideoKeys(
 ): Promise<void> {
   const pool = getPool();
   await pool.query(
-    `UPDATE video_library_exercises
+    `UPDATE fitvault_exercises
      SET full_video_s3_key = COALESCE($2, full_video_s3_key),
          preview_clip_s3_key = COALESCE($3, preview_clip_s3_key),
          thumbnail_s3_key = COALESCE($4, thumbnail_s3_key),

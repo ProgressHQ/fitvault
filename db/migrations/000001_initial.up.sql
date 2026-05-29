@@ -1,5 +1,5 @@
--- ── video_library_exercises ────────────────────────────────────────────────
-CREATE TABLE video_library_exercises (
+-- ── fitvault_exercises ──────────────────────────────────────────────────────
+CREATE TABLE fitvault_exercises (
     id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     name                JSONB       NOT NULL,
     description         JSONB,
@@ -20,13 +20,13 @@ CREATE TABLE video_library_exercises (
     reviewer_id         UUID
 );
 
-CREATE INDEX vid_exercises_status_created_idx  ON video_library_exercises (status, created_at);
-CREATE INDEX vid_exercises_difficulty_idx       ON video_library_exercises (difficulty);
-CREATE INDEX vid_exercises_muscle_groups_idx    ON video_library_exercises USING GIN (muscle_groups);
-CREATE INDEX vid_exercises_equipment_idx        ON video_library_exercises USING GIN (equipment);
+CREATE INDEX vid_exercises_status_created_idx  ON fitvault_exercises (status, created_at);
+CREATE INDEX vid_exercises_difficulty_idx       ON fitvault_exercises (difficulty);
+CREATE INDEX vid_exercises_muscle_groups_idx    ON fitvault_exercises USING GIN (muscle_groups);
+CREATE INDEX vid_exercises_equipment_idx        ON fitvault_exercises USING GIN (equipment);
 
--- ── video_library_products ─────────────────────────────────────────────────
-CREATE TABLE video_library_products (
+-- ── fitvault_products ─────────────────────────────────────────────────
+CREATE TABLE fitvault_products (
     id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     type                TEXT        NOT NULL CHECK (type IN ('SINGLE_VIDEO','BUNDLE','SUBSCRIPTION_MONTHLY','SUBSCRIPTION_ANNUAL')),
     title               TEXT        NOT NULL,
@@ -38,14 +38,14 @@ CREATE TABLE video_library_products (
     active              BOOLEAN     NOT NULL DEFAULT true
 );
 
-CREATE INDEX vid_products_active_idx ON video_library_products (active);
+CREATE INDEX vid_products_active_idx ON fitvault_products (active);
 
 -- ── user_video_unlocks ─────────────────────────────────────────────────────
 CREATE TABLE user_video_unlocks (
     id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id      UUID        NOT NULL,
-    exercise_id  UUID        NOT NULL REFERENCES video_library_exercises(id),
-    product_id   UUID        REFERENCES video_library_products(id),
+    exercise_id  UUID        NOT NULL REFERENCES fitvault_exercises(id),
+    product_id   UUID        REFERENCES fitvault_products(id),
     purchased_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     payment_id   TEXT,
     UNIQUE (user_id, exercise_id)
@@ -58,7 +58,7 @@ CREATE INDEX vid_unlocks_exercise_id_idx ON user_video_unlocks (exercise_id);
 CREATE TABLE user_subscriptions (
     id                       UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id                  UUID        NOT NULL,
-    product_id               UUID        NOT NULL REFERENCES video_library_products(id),
+    product_id               UUID        NOT NULL REFERENCES fitvault_products(id),
     status                   TEXT        NOT NULL CHECK (status IN ('ACTIVE','CANCELLED','EXPIRED')),
     valid_from               TIMESTAMPTZ NOT NULL,
     valid_until              TIMESTAMPTZ NOT NULL,
@@ -68,8 +68,8 @@ CREATE TABLE user_subscriptions (
 
 CREATE INDEX vid_subs_user_status_idx ON user_subscriptions (user_id, status);
 
--- ── ppv_contributors ───────────────────────────────────────────────────────
-CREATE TABLE ppv_contributors (
+-- ── fitvault_contributors ───────────────────────────────────────────────────────
+CREATE TABLE fitvault_contributors (
     user_id           UUID         PRIMARY KEY,
     verified          BOOLEAN      NOT NULL DEFAULT false,
     revenue_share_pct NUMERIC(5,4) NOT NULL DEFAULT 0.7000,
@@ -79,8 +79,8 @@ CREATE TABLE ppv_contributors (
 -- ── contributor_earnings ───────────────────────────────────────────────────
 CREATE TABLE contributor_earnings (
     id                 UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    contributor_id     UUID         NOT NULL REFERENCES ppv_contributors(user_id),
-    exercise_id        UUID         NOT NULL REFERENCES video_library_exercises(id),
+    contributor_id     UUID         NOT NULL REFERENCES fitvault_contributors(user_id),
+    exercise_id        UUID         NOT NULL REFERENCES fitvault_exercises(id),
     unlock_id          UUID         NOT NULL REFERENCES user_video_unlocks(id),
     gross_amount_cents INTEGER      NOT NULL,
     revenue_share_pct  NUMERIC(5,4) NOT NULL,
@@ -96,7 +96,7 @@ CREATE INDEX vid_earnings_period_month_idx ON contributor_earnings (period_month
 -- ── content_review_notes ───────────────────────────────────────────────────
 CREATE TABLE content_review_notes (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    exercise_id UUID        NOT NULL REFERENCES video_library_exercises(id),
+    exercise_id UUID        NOT NULL REFERENCES fitvault_exercises(id),
     reviewer_id UUID        NOT NULL,
     action      TEXT        NOT NULL CHECK (action IN ('APPROVED','REJECTED','CHANGES_REQUESTED')),
     note        TEXT,

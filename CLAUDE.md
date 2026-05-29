@@ -1,11 +1,11 @@
-# CLAUDE.md — ppv-excercies-library
+# CLAUDE.md — fitvault
 
-PPV Exercise Library: standalone Next.js 16 + TypeScript product (not a Trainely microservice).
+FitVault: standalone Next.js 16 + TypeScript product (not a Trainely microservice).
 
 ## Stack
 
 - **Framework:** Next.js 16 App Router, React 19, TypeScript 5, Tailwind v4
-- **Database:** PostgreSQL 16 (`video_library_db`), raw `pg` queries (no ORM)
+- **Database:** PostgreSQL 16 (`fitvault_db`), raw `pg` queries (no ORM)
 - **Migrations:** `golang-migrate` — files live in `db/migrations/`
 - **Payments:** OpenPay SDK (`../openpay-sdk/`) via webpack aliases (no build step); `MockProvider` in dev, `StripeProvider` when `STRIPE_SECRET_KEY` is set
 - **Video delivery:** S3 (private) + CloudFront signed URLs (RSA-SHA1 canned policy, stdlib `crypto`)
@@ -29,8 +29,8 @@ npm run seed         # seed exercises from ../../excercises-blob/trainely_exerci
 ## Environment variables
 
 See `.env.example`. Required at runtime:
-- `DATABASE_URL` — PostgreSQL connection string for `video_library_db`
-- `PPV_BASE_URL` — public base URL (e.g. `http://localhost:3002`)
+- `DATABASE_URL` — PostgreSQL connection string for `fitvault_db`
+- `FITVAULT_BASE_URL` — public base URL (e.g. `http://localhost:3002`)
 - `CLOUDFRONT_BASE_URL`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` — CDN signing (stub-safe; graceful fallback when absent)
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — activates StripeProvider (mock used when absent)
 - `AWS_REGION`, `S3_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3 presigned URLs for offline download

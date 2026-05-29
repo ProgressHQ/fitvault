@@ -34,7 +34,7 @@ export async function POST(
 
       const newStatus = action === "APPROVED" ? "APPROVED" : action === "REJECTED" ? "REJECTED" : "DRAFT";
       await client.query(
-        `UPDATE video_library_exercises
+        `UPDATE fitvault_exercises
          SET status = $1, reviewer_id = $2, reviewed_at = now(), updated_at = now()
          WHERE id = $3`,
         [newStatus, admin.userId, id]

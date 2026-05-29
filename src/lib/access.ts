@@ -146,7 +146,7 @@ export async function upsertSubscription(params: {
 export async function getContributor(userId: string): Promise<ContributorRow | null> {
   const pool = getPool();
   const result = await pool.query<ContributorRow>(
-    `SELECT * FROM ppv_contributors WHERE user_id = $1`,
+    `SELECT * FROM fitvault_contributors WHERE user_id = $1`,
     [userId]
   );
   return result.rows[0] ?? null;
@@ -155,7 +155,7 @@ export async function getContributor(userId: string): Promise<ContributorRow | n
 export async function ensureContributor(userId: string): Promise<ContributorRow> {
   const pool = getPool();
   const result = await pool.query<ContributorRow>(
-    `INSERT INTO ppv_contributors (user_id)
+    `INSERT INTO fitvault_contributors (user_id)
      VALUES ($1)
      ON CONFLICT (user_id) DO UPDATE SET user_id = EXCLUDED.user_id
      RETURNING *`,

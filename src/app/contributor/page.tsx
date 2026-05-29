@@ -205,7 +205,7 @@ export default function ContributorPage() {
         ) : earnings.length === 0 ? (
           <p style={{ color: "var(--muted)", fontSize: "0.875rem" }}>No earnings yet.</p>
         ) : (
-          <table className="ppv-table">
+          <table className="fitvault-table">
             <thead>
               <tr>
                 <th>Period</th>

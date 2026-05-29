@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PPV Exercise Library",
-  description: "Pay-per-view professional exercise video demonstrations",
+  title: "FitVault",
+  description: "Professional exercise video library",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -12,8 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <header className="mkt-nav">
           <a href="/" className="mkt-logo">
-            <span className="mkt-logo-mark">PPV</span>
-            <span className="mkt-logo-name">Exercise Library</span>
+            <span className="mkt-logo-mark">FV</span>
+            <span className="mkt-logo-name">FitVault</span>
           </a>
           <nav>
             <ul className="mkt-links">
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ul>
           </nav>
         </header>
-        <div className="ppv-shell">
+        <div className="fitvault-shell">
           {children}
         </div>
       </body>
