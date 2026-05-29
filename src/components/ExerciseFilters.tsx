@@ -17,96 +17,61 @@ function active(value: string | string[] | undefined, item: string): boolean {
   return Array.isArray(value) ? value.includes(item) : value === item;
 }
 
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: "1.25rem" }}>
+      <p className="filter-group-title">{title}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>{children}</div>
+    </div>
+  );
+}
+
 export default function ExerciseFilters({ current }: { current: SearchParams }) {
   return (
-    <form method="GET" className="space-y-5 text-sm">
-      {/* Hidden preserved params */}
+    <form method="GET" style={{ fontSize: "0.875rem" }}>
       {current.q && <input type="hidden" name="q" value={current.q} />}
       {current.lang && <input type="hidden" name="lang" value={current.lang} />}
 
-      {/* Difficulty */}
-      <div>
-        <p className="font-semibold text-gray-700 mb-2">Difficulty</p>
-        <div className="space-y-1">
-          {DIFFICULTIES.map((d) => (
-            <label key={d} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900">
-              <input
-                type="checkbox"
-                name="difficulty"
-                value={d}
-                defaultChecked={active(current.difficulty, d)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              {d}
-            </label>
-          ))}
-        </div>
-      </div>
+      <FilterGroup title="Difficulty">
+        {DIFFICULTIES.map((d) => (
+          <label key={d} className="filter-check-row">
+            <input type="checkbox" name="difficulty" value={d} defaultChecked={active(current.difficulty, d)} />
+            {d}
+          </label>
+        ))}
+      </FilterGroup>
 
-      {/* Movement Pattern */}
-      <div>
-        <p className="font-semibold text-gray-700 mb-2">Movement</p>
-        <div className="space-y-1">
-          {MOVEMENT_PATTERNS.map((mp) => (
-            <label key={mp} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900">
-              <input
-                type="checkbox"
-                name="movement_pattern"
-                value={mp}
-                defaultChecked={active(current.movement_pattern, mp)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              {mp}
-            </label>
-          ))}
-        </div>
-      </div>
+      <FilterGroup title="Movement">
+        {MOVEMENT_PATTERNS.map((mp) => (
+          <label key={mp} className="filter-check-row">
+            <input type="checkbox" name="movement_pattern" value={mp} defaultChecked={active(current.movement_pattern, mp)} />
+            {mp}
+          </label>
+        ))}
+      </FilterGroup>
 
-      {/* Muscle Groups */}
-      <div>
-        <p className="font-semibold text-gray-700 mb-2">Muscle groups</p>
-        <div className="space-y-1">
-          {MUSCLE_GROUPS.map((mg) => (
-            <label key={mg} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900">
-              <input
-                type="checkbox"
-                name="muscle_groups"
-                value={mg}
-                defaultChecked={active(current.muscle_groups, mg)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              {mg}
-            </label>
-          ))}
-        </div>
-      </div>
+      <FilterGroup title="Muscles">
+        {MUSCLE_GROUPS.map((mg) => (
+          <label key={mg} className="filter-check-row">
+            <input type="checkbox" name="muscle_groups" value={mg} defaultChecked={active(current.muscle_groups, mg)} />
+            {mg}
+          </label>
+        ))}
+      </FilterGroup>
 
-      {/* Equipment */}
-      <div>
-        <p className="font-semibold text-gray-700 mb-2">Equipment</p>
-        <div className="space-y-1">
-          {EQUIPMENT_OPTIONS.map((eq) => (
-            <label key={eq} className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900">
-              <input
-                type="checkbox"
-                name="equipment"
-                value={eq}
-                defaultChecked={active(current.equipment, eq)}
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              {eq}
-            </label>
-          ))}
-        </div>
-      </div>
+      <FilterGroup title="Equipment">
+        {EQUIPMENT_OPTIONS.map((eq) => (
+          <label key={eq} className="filter-check-row">
+            <input type="checkbox" name="equipment" value={eq} defaultChecked={active(current.equipment, eq)} />
+            {eq}
+          </label>
+        ))}
+      </FilterGroup>
 
-      <button
-        type="submit"
-        className="w-full bg-indigo-600 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-      >
+      <button type="submit" className="btn btn-primary btn-sm" style={{ width: "100%", justifyContent: "center" }}>
         Apply
       </button>
-      <a href="/" className="block text-center text-xs text-gray-400 hover:text-gray-600">
+      <a href="/" style={{ display: "block", textAlign: "center", fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.6rem" }}>
         Clear filters
       </a>
     </form>

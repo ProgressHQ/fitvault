@@ -8,17 +8,17 @@ const EQUIPMENT_OPTIONS = ["BARBELL","DUMBBELL","KETTLEBELL","CABLE","MACHINE","
 const DIFFICULTIES = ["BEGINNER","INTERMEDIATE","ADVANCED"];
 const MOVEMENT_PATTERNS = ["PUSH","PULL","HINGE","SQUAT","CARRY","ROTATION","GAIT"];
 
-const PAYOUT_COLOUR: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  PAID: "bg-green-100 text-green-800",
-  WITHHELD: "bg-red-100 text-red-800",
+const PAYOUT_BADGE: Record<string, string> = {
+  PENDING:  "badge-amber",
+  PAID:     "badge-green",
+  WITHHELD: "badge-red",
 };
 
 export default function ContributorPage() {
   const [earnings, setEarnings] = useState<EarningsSummary[]>([]);
   const [earningsLoading, setEarningsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -48,7 +48,7 @@ export default function ContributorPage() {
   async function startUpload(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.difficulty || !form.muscle_groups.length) {
-      setMessage("Name, difficulty, and at least one muscle group are required.");
+      setMessage({ text: "Name, difficulty, and at least one muscle group are required.", ok: false });
       return;
     }
     setUploading(true);
@@ -62,76 +62,86 @@ export default function ContributorPage() {
 
     if (res.ok) {
       const data = (await res.json()) as { exercise_id: string; upload_url: string; expires_at: string };
-      setMessage(
-        `✓ Exercise draft created (ID: ${data.exercise_id.slice(0, 8)}…). Upload your video to the provided S3 URL before ${new Date(data.expires_at).toLocaleTimeString()}, then call finalize.`
-      );
+      setMessage({
+        text: `Exercise draft created (ID: ${data.exercise_id.slice(0, 8)}…). Upload your video before ${new Date(data.expires_at).toLocaleTimeString()}, then call finalize.`,
+        ok: true,
+      });
       console.log("Upload URL:", data.upload_url);
     } else {
       const data = (await res.json()) as { error: string };
-      setMessage(`Error: ${data.error}`);
+      setMessage({ text: data.error, ok: false });
     }
     setUploading(false);
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Contributor Dashboard</h1>
+    <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+      <h1 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", fontWeight: 900, marginBottom: "2rem" }}>
+        Contributor Dashboard
+      </h1>
 
       {/* Upload form */}
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-5">Submit an exercise video</h2>
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="section-title" style={{ marginBottom: "1.5rem" }}>Submit an exercise video</h2>
 
         {message && (
-          <div className="bg-indigo-50 text-indigo-800 text-sm px-4 py-3 rounded-lg mb-5">
-            {message}
+          <div
+            style={{
+              background: message.ok ? "var(--accent-glow)" : "var(--red-glow)",
+              border: `1px solid ${message.ok ? "rgba(0,212,194,.2)" : "rgba(239,68,68,.2)"}`,
+              borderRadius: "var(--r-md)",
+              padding: "0.75rem 1rem",
+              fontSize: "0.85rem",
+              color: message.ok ? "var(--accent)" : "var(--red)",
+              marginBottom: "1.25rem",
+            }}
+          >
+            {message.text}
           </div>
         )}
 
-        <form onSubmit={(e) => void startUpload(e)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Exercise name (EN) <span className="text-red-500">*</span>
-            </label>
+        <form onSubmit={(e) => void startUpload(e)} style={{ display: "grid", gap: "1rem" }}>
+          <div className="field-group">
+            <label>Exercise name (EN)<span className="field-required">*</span></label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input"
               placeholder="e.g. Barbell Back Squat"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label>
+          <div className="field-group">
+            <label>Description (EN)</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input"
+              style={{ resize: "vertical" }}
               placeholder="Brief overview of the exercise…"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Difficulty <span className="text-red-500">*</span>
-              </label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div className="field-group">
+              <label>Difficulty<span className="field-required">*</span></label>
               <select
                 value={form.difficulty}
                 onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="input"
               >
                 <option value="">Select…</option>
                 {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Movement pattern</label>
+            <div className="field-group">
+              <label>Movement pattern</label>
               <select
                 value={form.movement_pattern}
                 onChange={(e) => setForm((f) => ({ ...f, movement_pattern: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="input"
               >
                 <option value="">Select…</option>
                 {MOVEMENT_PATTERNS.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -139,21 +149,16 @@ export default function ContributorPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Muscle groups <span className="text-red-500">*</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
+          <div className="field-group">
+            <label>Muscle groups<span className="field-required">*</span></label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
               {MUSCLE_GROUPS.map((mg) => (
                 <button
                   key={mg}
                   type="button"
                   onClick={() => toggleMulti("muscle_groups", mg)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                    form.muscle_groups.includes(mg)
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"
-                  }`}
+                  className={`badge ${form.muscle_groups.includes(mg) ? "badge-accent" : "badge-muted"}`}
+                  style={{ cursor: "pointer", border: form.muscle_groups.includes(mg) ? undefined : "1px solid var(--border-2)" }}
                 >
                   {mg}
                 </button>
@@ -161,19 +166,21 @@ export default function ContributorPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Equipment</label>
-            <div className="flex flex-wrap gap-2">
+          <div className="field-group">
+            <label>Equipment</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
               {EQUIPMENT_OPTIONS.map((eq) => (
                 <button
                   key={eq}
                   type="button"
                   onClick={() => toggleMulti("equipment", eq)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                    form.equipment.includes(eq)
-                      ? "bg-gray-700 text-white border-gray-700"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-                  }`}
+                  className={`badge ${form.equipment.includes(eq) ? "badge-muted" : ""}`}
+                  style={{
+                    cursor: "pointer",
+                    background: form.equipment.includes(eq) ? "var(--bg-4)" : "transparent",
+                    border: "1px solid var(--border-2)",
+                    color: form.equipment.includes(eq) ? "var(--text)" : "var(--muted)",
+                  }}
                 >
                   {eq}
                 </button>
@@ -181,42 +188,40 @@ export default function ContributorPage() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={uploading}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {uploading ? "Starting upload…" : "Start upload session"}
-          </button>
+          <div>
+            <button type="submit" disabled={uploading} className="btn btn-primary">
+              {uploading ? "Starting upload…" : "Start upload session"}
+            </button>
+          </div>
         </form>
-      </section>
+      </div>
 
       {/* Earnings */}
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-5">Earnings</h2>
+      <div className="card">
+        <h2 className="section-title" style={{ marginBottom: "1.25rem" }}>Earnings</h2>
 
         {earningsLoading ? (
-          <p className="text-gray-500 text-sm">Loading…</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem" }}>Loading…</p>
         ) : earnings.length === 0 ? (
-          <p className="text-gray-500 text-sm">No earnings yet.</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem" }}>No earnings yet.</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="ppv-table">
             <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
-                <th className="pb-2 font-medium">Period</th>
-                <th className="pb-2 font-medium text-right">Earnings</th>
-                <th className="pb-2 font-medium text-right">Status</th>
+              <tr>
+                <th>Period</th>
+                <th style={{ textAlign: "right" }}>Earnings</th>
+                <th style={{ textAlign: "right" }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {earnings.map((e) => (
-                <tr key={e.period_month} className="border-b border-gray-50">
-                  <td className="py-2 text-gray-700">{e.period_month}</td>
-                  <td className="py-2 text-right text-gray-900 font-medium">
+                <tr key={e.period_month}>
+                  <td className="mono-val">{e.period_month}</td>
+                  <td style={{ textAlign: "right", color: "var(--text)", fontFamily: "var(--font-mono)" }}>
                     ${(e.total_earnings_cents / 100).toFixed(2)}
                   </td>
-                  <td className="py-2 text-right">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PAYOUT_COLOUR[e.payout_status] ?? "bg-gray-100 text-gray-600"}`}>
+                  <td style={{ textAlign: "right" }}>
+                    <span className={`badge ${PAYOUT_BADGE[e.payout_status] ?? "badge-muted"}`}>
                       {e.payout_status}
                     </span>
                   </td>
@@ -225,7 +230,7 @@ export default function ContributorPage() {
             </tbody>
           </table>
         )}
-      </section>
+      </div>
     </div>
   );
 }

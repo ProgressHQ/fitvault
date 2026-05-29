@@ -42,64 +42,70 @@ export default async function LibraryPage({
 
   return (
     <div>
-      {/* Hero banner */}
       {subProduct && (
-        <div className="bg-indigo-600 text-white rounded-2xl p-6 mb-8 flex items-center justify-between">
+        <div className="sub-banner">
           <div>
-            <p className="text-lg font-semibold">Unlock the full library</p>
-            <p className="text-indigo-200 text-sm mt-1">
+            <p className="sub-banner-title">Unlock the full library</p>
+            <p className="sub-banner-sub">
               {subProduct.title} — from {(subProduct.price_cents / 100).toFixed(2)} {subProduct.currency}/mo
             </p>
           </div>
           <a
             href={`/exercises?subscribe=1&productId=${subProduct.id}`}
-            className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors text-sm"
+            className="btn btn-primary btn-sm"
           >
             Subscribe
           </a>
         </div>
       )}
 
-      <div className="flex gap-8">
+      <div style={{ display: "flex", gap: "2.5rem" }}>
         {/* Filters sidebar */}
-        <aside className="w-56 flex-shrink-0 hidden lg:block">
+        <aside style={{ width: "200px", flexShrink: 0 }} className="hidden lg:block">
           <ExerciseFilters current={sp} />
         </aside>
 
-        {/* Exercise grid */}
-        <div className="flex-1">
+        {/* Main */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           {/* Search */}
-          <form method="GET" className="mb-6">
-            <div className="flex gap-2">
+          <form method="GET" style={{ marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "8px" }}>
               <input
                 name="q"
                 defaultValue={sp.q}
                 placeholder="Search exercises…"
-                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="input"
+                style={{ flex: 1 }}
               />
-              <button
-                type="submit"
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
-              >
+              <button type="submit" className="btn btn-primary btn-sm">
                 Search
               </button>
             </div>
           </form>
 
           {exercises.length === 0 ? (
-            <p className="text-gray-500 text-center py-16">No exercises found.</p>
+            <div className="empty-state">
+              <p>No exercises found</p>
+              <p>Try adjusting your filters or search term.</p>
+            </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                  gap: "1rem",
+                }}
+              >
                 {exercises.map((ex) => (
                   <ExerciseCard key={ex.id} exercise={ex} lang={lang} />
                 ))}
               </div>
               {nextCursor && (
-                <div className="mt-8 text-center">
+                <div style={{ marginTop: "2rem", textAlign: "center" }}>
                   <a
                     href={`/?${new URLSearchParams({ ...flatSearchParams(sp), cursor: nextCursor }).toString()}`}
-                    className="inline-block bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2 rounded-lg transition-colors"
+                    className="btn btn-ghost"
                   >
                     Load more
                   </a>

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import type { ExerciseDetail } from "@/lib/exercises";
 
-const ACTION_COLOUR: Record<string, string> = {
-  APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800",
-  CHANGES_REQUESTED: "bg-yellow-100 text-yellow-800",
+const ACTION_BADGE: Record<string, string> = {
+  APPROVED:          "badge-green",
+  REJECTED:          "badge-red",
+  CHANGES_REQUESTED: "badge-amber",
 };
 
 export default function AdminPage() {
@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, { action: string; note: string }>>({});
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -40,61 +40,70 @@ export default function AdminPage() {
     });
 
     if (res.ok) {
-      setMessage(`✓ Exercise ${id.slice(0, 8)}… ${f.action.toLowerCase()}`);
+      setMessage({ text: `Exercise ${id.slice(0, 8)}… ${f.action.toLowerCase().replace("_", " ")}`, ok: true });
       await load();
     } else {
       const data = (await res.json()) as { error: string };
-      setMessage(`Error: ${data.error}`);
+      setMessage({ text: data.error, ok: false });
     }
     setReviewing(null);
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Moderation Queue</h1>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+        <h1 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 900 }}>Moderation Queue</h1>
         {message && (
-          <span className="text-sm text-indigo-600 font-medium">{message}</span>
+          <span
+            style={{
+              fontSize: "0.82rem", fontWeight: 600,
+              color: message.ok ? "var(--accent)" : "var(--red)",
+            }}
+          >
+            {message.ok ? "✓ " : "✗ "}{message.text}
+          </span>
         )}
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading…</p>
+        <p style={{ color: "var(--muted)" }}>Loading…</p>
       ) : exercises.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <p className="text-lg font-medium">Queue is empty</p>
-          <p className="text-sm mt-1">All submissions have been reviewed.</p>
+        <div className="empty-state">
+          <p>Queue is empty</p>
+          <p>All submissions have been reviewed.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {exercises.map((ex) => (
-            <div
-              key={ex.id}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm p-5"
-            >
-              <div className="flex items-start gap-4">
+            <div key={ex.id} className="card">
+              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
                 {ex.thumbnail_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={ex.thumbnail_url}
                     alt={ex.name}
-                    className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
+                    style={{ width: 80, height: 56, objectFit: "cover", borderRadius: "var(--r-md)", flexShrink: 0, border: "1px solid var(--border)" }}
                   />
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900">{ex.name}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
+                    {ex.name}
+                  </p>
+                  <p style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "2px" }}>
                     {ex.difficulty} · {ex.muscle_groups.join(", ")}
                   </p>
                   {ex.description && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{ex.description}</p>
+                    <p style={{ fontSize: "0.82rem", color: "var(--text-2)", marginTop: "4px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                      {ex.description}
+                    </p>
                   )}
                   {ex.preview_url && (
                     <a
                       href={ex.preview_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-indigo-600 hover:underline mt-1 inline-block"
+                      style={{ fontSize: "0.75rem", color: "var(--accent)", marginTop: "4px", display: "inline-block" }}
                     >
                       Preview video ↗
                     </a>
@@ -103,11 +112,21 @@ export default function AdminPage() {
               </div>
 
               {/* Review form */}
-              <div className="mt-4 flex flex-wrap gap-3 items-end">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Decision</label>
+              <div
+                style={{
+                  marginTop: "1rem",
+                  paddingTop: "1rem",
+                  borderTop: "1px solid var(--border)",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
+                  alignItems: "flex-end",
+                }}
+              >
+                <div className="field-group" style={{ minWidth: "160px" }}>
+                  <label>Decision</label>
                   <select
-                    className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input"
                     value={form[ex.id]?.action ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, [ex.id]: { ...f[ex.id]!, action: e.target.value, note: f[ex.id]?.note ?? "" } }))
@@ -115,34 +134,38 @@ export default function AdminPage() {
                   >
                     <option value="">Select…</option>
                     {["APPROVED", "REJECTED", "CHANGES_REQUESTED"].map((a) => (
-                      <option key={a} value={a}>{a.replace("_", " ")}</option>
+                      <option key={a} value={a}>{a.replace(/_/g, " ")}</option>
                     ))}
                   </select>
                 </div>
-                <div className="flex-1 min-w-48">
-                  <label className="block text-xs text-gray-500 mb-1">Note (required for reject/changes)</label>
+
+                <div className="field-group" style={{ flex: 1, minWidth: "200px" }}>
+                  <label>Note (required for reject / changes)</label>
                   <input
                     type="text"
                     placeholder="Reviewer note…"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input"
                     value={form[ex.id]?.note ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, [ex.id]: { action: f[ex.id]?.action ?? "", note: e.target.value } }))
                     }
                   />
                 </div>
-                <button
-                  onClick={() => void submitReview(ex.id)}
-                  disabled={!form[ex.id]?.action || reviewing === ex.id}
-                  className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                >
-                  {reviewing === ex.id ? "Submitting…" : "Submit"}
-                </button>
-                {form[ex.id]?.action && (
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${ACTION_COLOUR[form[ex.id]!.action] ?? ""}`}>
-                    {form[ex.id]!.action.replace("_", " ")}
-                  </span>
-                )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <button
+                    onClick={() => void submitReview(ex.id)}
+                    disabled={!form[ex.id]?.action || reviewing === ex.id}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {reviewing === ex.id ? "Submitting…" : "Submit"}
+                  </button>
+                  {form[ex.id]?.action && (
+                    <span className={`badge ${ACTION_BADGE[form[ex.id]!.action] ?? "badge-muted"}`}>
+                      {form[ex.id]!.action.replace(/_/g, " ")}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
