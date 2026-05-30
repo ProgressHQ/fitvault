@@ -1,6 +1,6 @@
 # FitVault
 
-Pay-per-view exercise video platform. Coaches embed exercise demonstrations into Trainely plans; athletes unlock and watch them inline. Certified contributors upload content and earn a revenue share.
+Pay-per-view exercise video platform. Coaches embed exercise demonstrations into training plans; athletes unlock and watch them inline. Certified contributors upload content and earn a revenue share.
 
 **Stack:** Next.js 16 App Router · TypeScript 5 · PostgreSQL 16 · OpenPay SDK · S3 + CloudFront · Port 3002
 
@@ -11,7 +11,7 @@ Pay-per-view exercise video platform. Coaches embed exercise demonstrations into
 ### Prerequisites
 
 - Node.js 20+
-- PostgreSQL 16 running locally (or via Docker — see `../infra/docker-compose.yaml`)
+- PostgreSQL 16 running locally
 - `golang-migrate` CLI for running migrations
 - The `excercises-blob/` repo cloned alongside this one (required for seeding)
 
@@ -23,12 +23,6 @@ cp .env.example .env          # fill in DATABASE_URL at minimum
 make migrate                  # create schema in fitvault_db
 make seed                     # load exercises from excercises-blob/excercises_en.json
 npm run dev                   # http://localhost:3002
-```
-
-The full stack (all services + Postgres + Jaeger) can be started instead with:
-
-```bash
-cd ../infra && docker compose up --build
 ```
 
 ---
@@ -90,7 +84,7 @@ The seed script maps raw exercise fields to FitVault's schema:
 
 ## API routes
 
-All routes are under `/api/`. User identity comes from `x-user-id` and `x-user-role` headers injected by Trainely's Envoy gateway.
+All routes are under `/api/`. User identity is forwarded via `x-user-id` and `x-user-role` request headers.
 
 ### Exercises
 
@@ -124,24 +118,6 @@ All routes are under `/api/`. User identity comes from `x-user-id` and `x-user-r
 |---|---|---|
 | `GET` | `/api/admin/exercises/pending` | List exercises in `PENDING_REVIEW`. Requires `x-user-role: ADMIN`. |
 | `POST` | `/api/admin/exercises/:id/review` | Approve or reject a pending exercise. Body: `{ action, note }`. |
-
----
-
-## Trainely integration
-
-plan-service calls FitVault through `gym-exercise-service`, which acts as a gRPC proxy:
-
-```
-plan-service ──gRPC──► gym-exercise-service ──HTTP──► GET /api/exercises/:id?lang=
-```
-
-The web app calls FitVault directly for the video access gate:
-
-```
-browser ─────────────────────────────────────► GET /api/exercises/:id/access
-```
-
-FitVault does **not** call back into Trainely. User identity flows one way: Trainely's Envoy injects `x-user-id` / `x-user-role` on every request.
 
 ---
 
