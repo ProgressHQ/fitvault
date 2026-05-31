@@ -22,6 +22,7 @@ export interface ExerciseSummary {
   movement_pattern: string | null;
   thumbnail_url: string | null;
   preview_url: string | null;
+  video_url: string | null;
   duration_seconds: number | null;
 }
 
@@ -55,6 +56,7 @@ function toSummary(row: ExerciseRow, lang: Lang): ExerciseSummary {
     movement_pattern: row.movement_pattern,
     thumbnail_url: thumbnailUrl(row.thumbnail_s3_key),
     preview_url: previewUrl(row.preview_clip_s3_key),
+    video_url: row.video_url ?? null,
     duration_seconds: row.duration_seconds,
   };
 }

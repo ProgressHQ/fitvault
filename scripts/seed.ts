@@ -1,5 +1,5 @@
 /**
- * Seed the fitvault_exercises table from excercises-blob/trainely_exercises.json.
+ * Seed the fitvault_exercises table from trainely_exercises.json.
  * Run: DATABASE_URL=... npm run seed
  */
 
@@ -18,6 +18,7 @@ interface BlobExercise {
   secondaryMuscles: string[];
   category: string;
   instructions: { en?: string[]; pl?: string[] } | string[];
+  video?: string;
 }
 
 // ── field mappings ─────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ async function main() {
 
   const pool = new Pool({ connectionString: dbUrl });
 
-  const blobPath = join(__dirname, "../../excercises-blob/excercises_en.json");
+  const blobPath = join(__dirname, "../trainely_exercises.json");
   const raw = readFileSync(blobPath, "utf-8");
   const exercises: BlobExercise[] = JSON.parse(raw) as BlobExercise[];
 
@@ -123,22 +124,25 @@ async function main() {
     const difficulty = LEVEL_MAP[ex.level] ?? "BEGINNER";
     const movementPattern = mapForce(ex.force);
     const instructions = normalizeInstructions(ex.instructions);
+    const videoUrl = ex.video && ex.video.trim() !== "" ? ex.video.trim() : null;
 
     if (!muscleGroups.length) muscleGroups.push("CORE");
 
     try {
       await pool.query(
         `INSERT INTO fitvault_exercises
-           (name, muscle_groups, equipment, difficulty, movement_pattern, instructions, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'APPROVED')
-         ON CONFLICT DO NOTHING`,
+           (external_id, name, muscle_groups, equipment, difficulty, movement_pattern, instructions, video_url, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')
+         ON CONFLICT (external_id) DO NOTHING`,
         [
+          ex.id,
           JSON.stringify(name),
           muscleGroups,
           equipment,
           difficulty,
           movementPattern,
           instructions ? JSON.stringify(instructions) : null,
+          videoUrl,
         ]
       );
       inserted++;

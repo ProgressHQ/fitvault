@@ -27,6 +27,7 @@ export function localizeArray(
 
 export interface ExerciseRow {
   id: string;
+  external_id: string | null;
   name: I18nString;
   description: I18nString | null;
   muscle_groups: string[];
@@ -34,6 +35,7 @@ export interface ExerciseRow {
   difficulty: string;
   movement_pattern: string | null;
   instructions: I18nStringArray | null;
+  video_url: string | null;
   full_video_s3_key: string | null;
   preview_clip_s3_key: string | null;
   thumbnail_s3_key: string | null;
