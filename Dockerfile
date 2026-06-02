@@ -12,6 +12,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=openpay-sdk . /openpay-sdk
 COPY . .
 RUN npm run build
+# Bundle the seed script into a standalone CJS file (pg-native is optional and absent)
+RUN npx esbuild scripts/seed.ts \
+      --bundle --platform=node --target=node22 \
+      --external:pg-native \
+      --outfile=scripts/seed.js
 
 # Download golang-migrate binary for the target architecture
 FROM alpine:3.19 AS migrate-dl
@@ -31,6 +36,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs db/migrations ./db/migrations
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/seed.js ./scripts/seed.js
+COPY --chown=nextjs:nodejs trainely_exercises.json ./trainely_exercises.json
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 USER nextjs

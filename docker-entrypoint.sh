@@ -13,4 +13,6 @@ migrate -path /app/db/migrations -database "$DATABASE_URL" up 2>/tmp/migrate_err
   fi
 }
 
+node /app/scripts/seed.js
+
 exec node server.js
