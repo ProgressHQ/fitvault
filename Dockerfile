@@ -13,13 +13,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=openpay-sdk . /openpay-sdk
 COPY . .
 RUN npm run build
-# Install esbuild explicitly so npm resolves the binary for the current platform.
-# npx would otherwise pick up Next.js's bundled esbuild which may be for a different arch.
-RUN npm install --no-save esbuild
-RUN npx esbuild scripts/seed.ts \
-      --bundle --platform=node --target=node22 \
-      --external:pg-native \
-      --outfile=scripts/seed.js
+# Bundle seed.ts into a standalone CJS file using ncc (pure-JS, no native binary).
+# esbuild is avoided here because Next.js ships an arch-specific esbuild binary
+# that may not match the current build platform.
+RUN npx --yes @vercel/ncc build scripts/seed.ts -o /tmp/seed-out --target ECMA2022 \
+    && mv /tmp/seed-out/index.js scripts/seed.js
 
 # Download golang-migrate binary for the target architecture
 FROM alpine:3.19 AS migrate-dl
