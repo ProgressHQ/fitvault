@@ -16,7 +16,7 @@ RUN npm run build
 # Bundle seed.ts into a standalone CJS file using ncc (pure-JS, no native binary).
 # esbuild is avoided here because Next.js ships an arch-specific esbuild binary
 # that may not match the current build platform.
-RUN npx --yes @vercel/ncc build scripts/seed.ts -o /tmp/seed-out --target ECMA2022 \
+RUN npx --yes @vercel/ncc build scripts/seed.ts -o /tmp/seed-out \
     && mv /tmp/seed-out/index.js scripts/seed.js
 
 # Download golang-migrate binary for the target architecture
