@@ -1,12 +1,12 @@
-FROM node:22-alpine AS base
-RUN apk add --no-cache libc6-compat
+# Build stages use node:22-slim (Debian/glibc) so native binaries like esbuild work.
+# The final runner uses Alpine for a smaller image.
 
-FROM base AS deps
+FROM node:22-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-FROM base AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # OpenPay SDK source is resolved at build time via webpack aliases
@@ -27,10 +27,11 @@ RUN apk add --no-cache curl \
     && curl -fsSL "https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.linux-${ARCH}.tar.gz" \
        | tar xz -C /usr/local/bin migrate
 
-FROM base AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs \
+RUN apk add --no-cache libc6-compat \
+    && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 COPY --from=migrate-dl /usr/local/bin/migrate /usr/local/bin/migrate
 COPY --from=builder /app/public ./public
