@@ -13,7 +13,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=openpay-sdk . /openpay-sdk
 COPY . .
 RUN npm run build
-# Bundle the seed script into a standalone CJS file (pg-native is optional and absent)
+# Install esbuild explicitly so npm resolves the binary for the current platform.
+# npx would otherwise pick up Next.js's bundled esbuild which may be for a different arch.
+RUN npm install --no-save esbuild
 RUN npx esbuild scripts/seed.ts \
       --bundle --platform=node --target=node22 \
       --external:pg-native \
