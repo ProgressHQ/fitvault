@@ -39,7 +39,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs db/migrations ./db/migrations
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/seed.js ./scripts/seed.js
-COPY --chown=nextjs:nodejs trainely_exercises.json ./trainely_exercises.json
+# ncc rewrites readFileSync(join(__dirname, "../trainely_exercises.json")) to
+# join(__dirname, "trainely_exercises.json"), so the asset must live next to seed.js.
+COPY --chown=nextjs:nodejs trainely_exercises.json ./scripts/trainely_exercises.json
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
