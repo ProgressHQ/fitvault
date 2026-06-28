@@ -19,13 +19,8 @@ RUN npm run build
 RUN npx --yes @vercel/ncc build scripts/seed.ts -o /tmp/seed-out \
     && mv /tmp/seed-out/index.js scripts/seed.js
 
-# Download golang-migrate binary for the target architecture
-FROM alpine:3.19 AS migrate-dl
-ARG MIGRATE_VERSION=4.18.1
-RUN apk add --no-cache curl \
-    && ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
-    && curl -fsSL "https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.linux-${ARCH}.tar.gz" \
-       | tar xz -C /usr/local/bin migrate
+# Pull golang-migrate binary from the official image (avoids github.com at build time)
+FROM migrate/migrate:v4.18.1 AS migrate-dl
 
 FROM node:22-alpine AS runner
 WORKDIR /app
