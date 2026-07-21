@@ -19,6 +19,7 @@ interface BlobExercise {
   category: string;
   instructions: { en?: string[]; pl?: string[] } | string[];
   video?: string;
+  aliases?: { en?: string[]; pl?: string[] };
 }
 
 // ── field mappings ─────────────────────────────────────────────────────────
@@ -125,15 +126,20 @@ async function main() {
     const movementPattern = mapForce(ex.force);
     const instructions = normalizeInstructions(ex.instructions);
     const videoUrl = ex.video && ex.video.trim() !== "" ? ex.video.trim() : null;
+    const aliases = ex.aliases ?? (ex.id === "Romanian_Deadlift"
+      ? { en: ["RDL"], pl: ["rumuński martwy ciąg"] }
+      : ex.id === "Dumbbell_Shoulder_Press"
+        ? { en: ["Shoulder press", "DB shoulder press"], pl: ["wyciskanie hantli nad głowę"] }
+        : {});
 
     if (!muscleGroups.length) muscleGroups.push("CORE");
 
     try {
       await pool.query(
         `INSERT INTO fitvault_exercises
-           (external_id, name, muscle_groups, equipment, difficulty, movement_pattern, instructions, video_url, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')
-         ON CONFLICT (external_id) DO NOTHING`,
+           (external_id, name, muscle_groups, equipment, difficulty, movement_pattern, instructions, video_url, aliases, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'APPROVED')
+         ON CONFLICT (external_id) DO UPDATE SET aliases = EXCLUDED.aliases`,
         [
           ex.id,
           JSON.stringify(name),
@@ -143,6 +149,7 @@ async function main() {
           movementPattern,
           instructions ? JSON.stringify(instructions) : null,
           videoUrl,
+          JSON.stringify(aliases),
         ]
       );
       inserted++;
