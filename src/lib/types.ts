@@ -35,6 +35,7 @@ export interface ExerciseRow {
   difficulty: string;
   movement_pattern: string | null;
   instructions: I18nStringArray | null;
+  aliases: I18nStringArray;
   video_url: string | null;
   full_video_s3_key: string | null;
   preview_clip_s3_key: string | null;

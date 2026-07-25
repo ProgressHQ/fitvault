@@ -24,6 +24,7 @@ export interface ExerciseSummary {
   preview_url: string | null;
   video_url: string | null;
   duration_seconds: number | null;
+  aliases: string[];
 }
 
 export interface ExerciseDetail extends ExerciseSummary {
@@ -58,6 +59,7 @@ function toSummary(row: ExerciseRow, lang: Lang): ExerciseSummary {
     preview_url: previewUrl(row.preview_clip_s3_key),
     video_url: row.video_url ?? null,
     duration_seconds: row.duration_seconds,
+    aliases: localizeArray(row.aliases, lang),
   };
 }
 
@@ -77,7 +79,7 @@ export async function listExercises(opts: ListExercisesOptions): Promise<{
   nextCursor: string | null;
 }> {
   const pool = getPool();
-  const lang: Lang = opts.lang ?? "en";
+  const lang: Lang = opts.lang === "pl" ? "pl" : "en";
   const limit = Math.min(opts.limit ?? 20, 100);
 
   const params: unknown[] = ["APPROVED"];
@@ -89,12 +91,19 @@ export async function listExercises(opts: ListExercisesOptions): Promise<{
     conditions.push(`e.id > $${i++}`);
   }
   if (opts.q) {
-    const q = `%${opts.q}%`;
-    params.push(q);
-    conditions.push(
-      `(e.name->>'${lang}' ILIKE $${i} OR e.name->>'en' ILIKE $${i} OR e.description->>'${lang}' ILIKE $${i} OR e.description->>'en' ILIKE $${i})`
-    );
-    i++;
+    const tokens = opts.q.trim().toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    for (const token of tokens) {
+      params.push(`%${token}%`);
+      conditions.push(
+        `(COALESCE(e.name->>'${lang}', '') ILIKE $${i}
+          OR COALESCE(e.name->>'en', '') ILIKE $${i}
+          OR COALESCE(e.description->>'${lang}', '') ILIKE $${i}
+          OR COALESCE(e.description->>'en', '') ILIKE $${i}
+          OR COALESCE(e.aliases->>'${lang}', '') ILIKE $${i}
+          OR COALESCE(e.aliases->>'en', '') ILIKE $${i})`
+      );
+      i++;
+    }
   }
   if (opts.muscle_groups && opts.muscle_groups.length > 0) {
     params.push(opts.muscle_groups);
