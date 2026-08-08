@@ -34,11 +34,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs db/migrations ./db/migrations
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/seed.js ./scripts/seed.js
-# ncc rewrites readFileSync(join(__dirname, "../trainely_exercises.json")) to
-# join(__dirname, "trainely_exercises.json"), so the external catalogue must
-# live next to seed.js. The named context is the ProgressHQ/excercises-blob
-# checkout; keeping it external avoids duplicating the 1.5 MB dataset here.
-COPY --from=exercise-data --chown=nextjs:nodejs trainely_exercises.json ./scripts/trainely_exercises.json
+# ncc resolves the seed bundle's catalogue path from the application root.
+# The named context is the ProgressHQ/excercises-blob checkout; keeping it
+# external avoids duplicating the 1.5 MB dataset in this repository.
+COPY --from=exercise-data --chown=nextjs:nodejs trainely_exercises.json ./trainely_exercises.json
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
