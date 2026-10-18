@@ -8,7 +8,7 @@ FitVault: standalone Next.js 16 + TypeScript product (not a Trainely microservic
 - **Database:** PostgreSQL 16 (`fitvault_db`), raw `pg` queries (no ORM)
 - **Migrations:** `golang-migrate` — files live in `db/migrations/`
 - **Payments:** OpenPay SDK (`../openpay-sdk/`) via webpack aliases (no build step); `MockProvider` in dev, `StripeProvider` when `STRIPE_SECRET_KEY` is set
-- **Video delivery:** S3 (private) + CloudFront signed URLs (RSA-SHA1 canned policy, stdlib `crypto`)
+- **Video storage:** S3 (private). Delivery is not built: the CloudFront signing in `src/lib/cdn.ts` is a leftover from the earlier AWS design and is unset in every environment (there is no CloudFront; Trainely's edge is Cloudflare)
 - **Port:** 3002 (dev and container)
 
 ## Key conventions
@@ -31,7 +31,7 @@ npm run seed         # seed exercises from ../../excercises-blob/trainely_exerci
 See `.env.example`. Required at runtime:
 - `DATABASE_URL` — PostgreSQL connection string for `fitvault_db`
 - `FITVAULT_BASE_URL` — public base URL (e.g. `http://localhost:3002`)
-- `CLOUDFRONT_BASE_URL`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` — CDN signing (stub-safe; graceful fallback when absent)
+- `CLOUDFRONT_BASE_URL`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` — do not set: leftover CloudFront signing, read by `src/lib/cdn.ts`/`src/lib/exercises.ts` but unused. Setting the base URL would send Trainely users' media requests to AWS (not in the privacy policy); replace when video delivery is designed
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — activates StripeProvider (mock used when absent)
 - `AWS_REGION`, `S3_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3 presigned URLs for offline download
 
