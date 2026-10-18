@@ -16,7 +16,12 @@ RUN npm run build
 # Bundle seed.ts into a standalone CJS file using ncc (pure-JS, no native binary).
 # esbuild is avoided here because Next.js ships an arch-specific esbuild binary
 # that may not match the current build platform.
-RUN npx --yes @vercel/ncc@0.45.0 build scripts/seed.ts -o /tmp/seed-out \
+# A trainely_exercises.json left in the build context (there is no
+# .dockerignore) makes ncc inline it as an asset and rewrite the read to the
+# bundle's own directory. Remove it so the bundle always reads
+# ../trainely_exercises.json, i.e. /app/trainely_exercises.json at runtime.
+RUN rm -f trainely_exercises.json \
+    && npx --yes @vercel/ncc@0.45.0 build scripts/seed.ts -o /tmp/seed-out \
     && mv /tmp/seed-out/index.js scripts/seed.js
 
 # Pull golang-migrate binary from the official image (avoids github.com at build time)
@@ -34,14 +39,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs db/migrations ./db/migrations
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/seed.js ./scripts/seed.js
-# ncc rewrites readFileSync(join(__dirname, "../trainely_exercises.json")) to
-# __nccwpck_require__.ab + "trainely_exercises.json", where .ab is the
-# bundle's own directory, so the catalogue must sit next to seed.js. ncc is
-# pinned above because this rewrite has changed between releases (#14 moved
-# the file to the app root and the seed then failed with ENOENT). The named
-# context is the ProgressHQ/excercises-blob checkout; keeping it external
-# avoids duplicating the 1.5 MB dataset in this repository.
-COPY --from=exercise-data --chown=nextjs:nodejs trainely_exercises.json ./scripts/trainely_exercises.json
+# The seed bundle reads ../trainely_exercises.json relative to scripts/, so the
+# catalogue sits at the application root. The named context is the
+# ProgressHQ/excercises-blob checkout; keeping it external avoids duplicating
+# the 1.5 MB dataset in this repository.
+COPY --from=exercise-data --chown=nextjs:nodejs trainely_exercises.json ./trainely_exercises.json
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
