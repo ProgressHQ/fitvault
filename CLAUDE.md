@@ -31,7 +31,7 @@ npm run seed         # seed exercises from ../../excercises-blob/trainely_exerci
 See `.env.example`. Required at runtime:
 - `DATABASE_URL` — PostgreSQL connection string for `fitvault_db`
 - `FITVAULT_BASE_URL` — public base URL (e.g. `http://localhost:3002`)
-- `CLOUDFRONT_BASE_URL`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` — do not set: leftover CloudFront signing, read by `src/lib/cdn.ts`/`src/lib/exercises.ts` but unused. Setting the base URL would send Trainely users' media requests to AWS (not in the privacy policy); replace when video delivery is designed
+- `CLOUDFRONT_BASE_URL`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` — do not set: leftover CloudFront signing. When set, `src/lib/cdn.ts` and `src/lib/exercises.ts` read them and use the base URL to build clip, thumbnail and preview URLs, so setting it would send Trainely users' media requests to AWS (not in the privacy policy); replace when video delivery is designed
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — activates StripeProvider (mock used when absent)
 - `AWS_REGION`, `S3_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3 presigned URLs for offline download
 
