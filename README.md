@@ -2,7 +2,7 @@
 
 Pay-per-view exercise video platform. Coaches embed exercise demonstrations into training plans; athletes unlock and watch them inline. Certified contributors upload content and earn a revenue share.
 
-**Stack:** Next.js 16 App Router · TypeScript 5 · PostgreSQL 16 · OpenPay SDK · S3 + CloudFront · Port 3002
+**Stack:** Next.js 16 App Router · TypeScript 5 · PostgreSQL 16 · OpenPay SDK · S3 · Port 3002
 
 ---
 
@@ -33,9 +33,7 @@ npm run dev                   # http://localhost:3002
 |---|---|---|
 | `DATABASE_URL` | Yes | PostgreSQL DSN, e.g. `postgres://app:app@localhost:5432/fitvault_db?sslmode=disable` |
 | `FITVAULT_BASE_URL` | Yes | Public base URL used for checkout return URLs, e.g. `http://localhost:3002` |
-| `CLOUDFRONT_BASE_URL` | No | CDN base URL for thumbnail/preview URLs. Omit in dev — placeholder `null` returned. |
-| `CLOUDFRONT_KEY_PAIR_ID` | No | CloudFront signing key pair ID (RSA-SHA1 canned policy) |
-| `CLOUDFRONT_PRIVATE_KEY` | No | CloudFront signing private key (PEM string) |
+| `CLOUDFRONT_*` | Do not set | Leftover from the earlier AWS deployment design; there is no CloudFront (Trainely's edge is Cloudflare). Unset, thumbnail/preview URLs are `null` and the full-video URL is a placeholder. Setting `CLOUDFRONT_BASE_URL` would make Trainely clients load media from AWS, which the privacy policy doesn't list. Video delivery is not built yet. |
 | `AWS_REGION` | No | Required for S3 presigned upload URLs (contributor pipeline) |
 | `AWS_ACCESS_KEY_ID` | No | AWS credentials for S3 |
 | `AWS_SECRET_ACCESS_KEY` | No | AWS credentials for S3 |
@@ -92,7 +90,7 @@ All routes are under `/api/`. User identity is forwarded via `x-user-id` and `x-
 |---|---|---|
 | `GET` | `/api/exercises` | List APPROVED exercises. Query: `q`, `muscle_groups`, `equipment`, `difficulty`, `movement_pattern`, `lang`, `cursor`, `limit`. |
 | `GET` | `/api/exercises/:id` | Get exercise detail by ID. Query: `lang` (default `en`). |
-| `GET` | `/api/exercises/:id/access` | Check athlete video access. Returns a signed CloudFront URL on success, `403` if no unlock/subscription, `404` if exercise not found. |
+| `GET` | `/api/exercises/:id/access` | Check athlete video access. Returns a video URL on success (a placeholder until video delivery is built), `403` if no unlock/subscription, `404` if exercise not found. |
 | `GET` | `/api/exercises/:id/download-url` | Returns a signed S3 URL for offline download (requires unlock). |
 
 ### Products & checkout
