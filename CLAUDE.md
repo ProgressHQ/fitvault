@@ -23,7 +23,8 @@ FitVault: standalone Next.js 16 + TypeScript product (not a Trainely microservic
 ```bash
 npm run dev          # start dev server (port 3002)
 npm run build        # production build
-npm run seed         # seed exercises from ../../excercises-blob/trainely_exercises.json
+npm run seed         # seed from ./trainely_exercises.json (copy it from ../excercises-blob/;
+                     # Docker builds get it from the `exercise-data` build context)
 ```
 
 ## Environment variables
